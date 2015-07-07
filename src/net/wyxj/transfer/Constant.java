@@ -62,12 +62,12 @@ public class Constant {
 	/**
 	 * 默认的文件进度通知间隔
 	 */
-	public static final int DEFAULT_INTERVAL_SIZE = 32*1024;
+	public static final int DEFAULT_INTERVAL_SIZE = 128*1024;
 
 	/**
 	 * 默认的文件校验方式
 	 */
-	public static final int DEFAULT_FILE_CHECK = FileHeader.CHECK_CRC32;
+	public static final int DEFAULT_FILE_CHECK = FileHeader.CHECK_NO;
 	
 	/*
 	 * 文件传输工作者的运行状态

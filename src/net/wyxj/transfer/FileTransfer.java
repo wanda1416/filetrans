@@ -179,7 +179,7 @@ public abstract class FileTransfer implements IFileTransfer {
 		}
 	}
 	
-	public void abortAll(){
+	public void abortAllRecv(){
 		if(getReceiveServer()!=null){
 			getReceiveServer().abortAll();
 		}

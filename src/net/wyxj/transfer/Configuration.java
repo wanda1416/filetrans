@@ -3,8 +3,8 @@ package net.wyxj.transfer;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.wyxj.transfer.tools.ConfigTools;
-import net.wyxj.transfer.tools.SocketTools;
+import net.wyxj.tools.filetrans.ConfigTools;
+import net.wyxj.tools.filetrans.SocketTools;
 
 public class Configuration {
 	// 本地的地址在创建后自动配置，不需要写入到配置文件中

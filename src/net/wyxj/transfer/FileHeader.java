@@ -7,9 +7,9 @@ import java.util.Random;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import net.wyxj.security.CRC32;
-import net.wyxj.security.MD5;
-import net.wyxj.security.SHA1;
+import net.wyxj.security.symmetric.CRC32;
+import net.wyxj.security.symmetric.MD5;
+import net.wyxj.security.symmetric.SHA1;
 
 public class FileHeader {
 

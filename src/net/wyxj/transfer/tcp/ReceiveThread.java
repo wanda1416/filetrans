@@ -9,9 +9,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import net.wyxj.security.CRC32;
-import net.wyxj.security.MD5;
-import net.wyxj.security.SHA1;
+import net.wyxj.security.symmetric.CRC32;
+import net.wyxj.security.symmetric.MD5;
+import net.wyxj.security.symmetric.SHA1;
 import net.wyxj.transfer.Configuration;
 import net.wyxj.transfer.Constant;
 import net.wyxj.transfer.FileHeader;

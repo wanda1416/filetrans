@@ -77,9 +77,9 @@ public class TransferManager {
 
 	public ArrayList<FileHeader> getRecvList() {
 		ArrayList<FileHeader> list = new ArrayList<FileHeader>(
-				sendTransSet.size());
+				recvTransSet.size());
 		synchronized (recvTransSet) {
-			for (FileHeader header : sendTransSet) {
+			for (FileHeader header : recvTransSet) {
 				list.add(header);
 			}
 		}
@@ -88,9 +88,9 @@ public class TransferManager {
 	
 	public ArrayList<String> getRecvNames() {
 		ArrayList<String> list = new ArrayList<String>(
-				sendTransSet.size());
+				recvTransSet.size());
 		synchronized (recvTransSet) {
-			for (FileHeader header : sendTransSet) {
+			for (FileHeader header : recvTransSet) {
 				list.add(header.getFileName());
 			}
 		}

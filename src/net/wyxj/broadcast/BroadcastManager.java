@@ -1,17 +1,11 @@
-
 package net.wyxj.broadcast;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,27 +16,25 @@ import java.util.List;
  * @author 辉
  * 
  */
-public class BroadcastManager implements IBroadcastManager {
+public class BroadcastManager extends AbstractBroadcastManager {
 
 	private static final int BUFFER_SIZE = 8192;
-	
-	private	DatagramSocket defaultSendSocket = null;
-	
+
+	private DatagramSocket defaultSendSocket = null;
+
 	private InetAddress broadcastAddress = null;
-	
-	public static final Charset DEFAULT_ENCODE = Charset.forName("UTF-8");
-	
+
 	private BroadcastManager() {
-		broadcastAddress = getBroadcastAddress();
-		if( broadcastAddress == null){
+		broadcastAddress = CommonUtils.getBroadcastAddress();
+		if (broadcastAddress == null) {
 			System.err.println("无法获得广播地址！");
 			try {
 				broadcastAddress = InetAddress.getByName("127.0.0.1");
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			}
-		}else{
-			System.err.println("广播地址:"+broadcastAddress.toString());
+		} else {
+			System.err.println("广播地址:" + broadcastAddress.toString());
 		}
 		try {
 			defaultSendSocket = new DatagramSocket();
@@ -50,12 +42,12 @@ public class BroadcastManager implements IBroadcastManager {
 			e.printStackTrace();
 		}
 		listenerList = new LinkedList<BoradcastListener>();
-		map = new HashMap<Integer,ReceiveThread>();
+		map = new HashMap<Integer, BMReceiveThread>();
 	}
-	
+
 	@Override
 	public synchronized boolean sendBroadcastMessage(int destPort, byte[] data) {
-		if (data.length >= BUFFER_SIZE){
+		if (data.length >= BUFFER_SIZE) {
 			return false;
 		}
 		DatagramPacket packet = new DatagramPacket(data, data.length,
@@ -68,19 +60,13 @@ public class BroadcastManager implements IBroadcastManager {
 		return true;
 	}
 
-	@Override
-	public synchronized boolean sendBroadcastMessage(int destPort, String data) {
-		return sendBroadcastMessage(destPort,
-				data.getBytes(DEFAULT_ENCODE));
-	}
-	
 	List<BoradcastListener> listenerList;
-	
+
 	@Override
 	public void addListener(BoradcastListener listener) {
 		listenerList.add(listener);
 	}
-	
+
 	@Override
 	public void removeListener(BoradcastListener listener) {
 		listenerList.remove(listener);
@@ -100,14 +86,14 @@ public class BroadcastManager implements IBroadcastManager {
 		defaultSendSocket.close();
 	}
 
-	private HashMap<Integer,ReceiveThread> map = null;
-	
+	private HashMap<Integer, BMReceiveThread> map = null;
+
 	@Override
 	public boolean listenPort(int port) {
-		if(map.containsKey(port)){
+		if (map.containsKey(port)) {
 			return false;
-		}		
-		ReceiveThread thread = new ReceiveThread(port);
+		}
+		BMReceiveThread thread = new BMReceiveThread(port);
 		thread.start();
 		map.put(port, thread);
 		return true;
@@ -115,36 +101,36 @@ public class BroadcastManager implements IBroadcastManager {
 
 	@Override
 	public boolean removePort(int port) {
-		if(!map.containsKey(port)){
+		if (!map.containsKey(port)) {
 			return false;
-		}	
+		}
 		map.get(port).exit();
 		return true;
 	}
 
 	@Override
 	public void removeAllPort() {
-		for(ReceiveThread thread:map.values()){
+		for (BMReceiveThread thread : map.values()) {
 			thread.exit();
 		}
 	}
 
-	public class ReceiveThread extends Thread {
-		
+	public class BMReceiveThread extends Thread {
+
 		private int port;
-		
-		public int getPort(){
+
+		public int getPort() {
 			return port;
 		}
-	
-		public ReceiveThread(int port){
-			this.port = port;			
+
+		public BMReceiveThread(int port) {
+			this.port = port;
 		}
-		
+
 		private boolean exit = false;
-		
+
 		@Override
-		public void run(){			
+		public void run() {
 			DatagramSocket socket = null;
 			try {
 				socket = new DatagramSocket(port);
@@ -163,13 +149,13 @@ public class BroadcastManager implements IBroadcastManager {
 					continue;
 				}
 				// 通知所有注册的监听器，收到了一个消息。
-				for(BoradcastListener manager:listenerList){
-					if(!manager.receiveData(this,recvData)){
-						// 
+				for (BoradcastListener manager : listenerList) {
+					if (!manager.receiveData(this, recvData)) {
+						// receiveData 需要返回true才能使得消息继续传递下去
 					}
 				}
 			}
-			socket.close();	
+			socket.close();
 			map.remove(port);
 		}
 
@@ -180,75 +166,14 @@ public class BroadcastManager implements IBroadcastManager {
 		public void exit() {
 			exit(true);
 		}
-		
+
 		public void exit(boolean interrupt) {
-			if (interrupt && this.isAlive()){
+			if (interrupt && this.isAlive()) {
 				this.interrupt();
 			}
 			this.exit = true;
 		}
-		
+
 	}
 
-	public static ArrayList<String> getLocalIPList(){
-		ArrayList<String> ipList = new ArrayList<String>();
-		try {
-			Enumeration<NetworkInterface> allNetInterfaces = NetworkInterface.getNetworkInterfaces();
-			InetAddress ip = null;
-			while (allNetInterfaces.hasMoreElements()) {
-				NetworkInterface netInterface = (NetworkInterface) allNetInterfaces
-						.nextElement();
-				Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
-				while (addresses.hasMoreElements()) {
-					ip = (InetAddress) addresses.nextElement();
-					if (ip != null && ip instanceof Inet4Address) {
-						ipList.add(ip.getHostAddress());
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.err.println("获取ip地址列表出错");
-		}
-		return ipList;
-	}
-	
-	public static String getMainIPAddress(){
-		String ip = null;
-		ArrayList<String> ipList = getLocalIPList();
-		for(int i=0;i<ipList.size();i++){
-			if( ipList.get(i).equals("127.0.0.1") == false &&
-					ipList.get(i).startsWith("192.168.") ){
-				ip = ipList.get(i);
-				break;
-			}
-		}
-		if(ip == null){
-			ip = "127.0.0.1";
-		}
-		return ip;
-	}
-	
-	public static InetAddress getBroadcastAddress() {
-		InetAddress address;
-		try {
-			address = InetAddress.getByName(getMainIPAddress());
-		} catch (UnknownHostException e) {
-			return null;
-		}
-		if (address != null) {
-			String addr = address.getHostAddress();
-			if(addr.equals("127.0.0.1")){
-				return null;
-			}
-			String ip = addr.substring(0, addr.lastIndexOf("."));
-			ip = ip + ".255";
-			try {
-				return InetAddress.getByName(ip);
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			}
-		}		
-		return null;
-	}
-	
 }

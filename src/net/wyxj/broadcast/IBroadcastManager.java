@@ -2,8 +2,6 @@ package net.wyxj.broadcast;
 
 import java.net.DatagramPacket;
 
-import net.wyxj.broadcast.BroadcastManager.ReceiveThread;
-
 /**
  * 定义了一个广播消息类需要实现的功能.
  * 功能包括：
@@ -24,9 +22,13 @@ public interface IBroadcastManager {
 	
 	public interface BoradcastListener {
 
-		public boolean receiveData(ReceiveThread receiveThread, final DatagramPacket packet);
+		public boolean receiveData(BroadcastManager.BMReceiveThread receiveThread, final DatagramPacket packet);
 		
 	}
+	
+	public void destroy();
+	
+	// 消息监听器设置
 	
 	public void addListener(BoradcastListener listener);
 	
@@ -34,15 +36,15 @@ public interface IBroadcastManager {
 	
 	public void removeAllListener();
 	
-	public void destroy();
-	
 	// 发送消息
 
 	public boolean sendBroadcastMessage(int port, byte[] data);
 	
 	public boolean sendBroadcastMessage(int port, String data);
 	
-	// 接收消息
+	public boolean sendBroadcastMessage(int port, Message msg);
+	
+	// 监听端口
 	
 	public boolean listenPort(int port);
 	
